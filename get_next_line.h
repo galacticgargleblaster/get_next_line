@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/02/26 00:18:26 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/02/26 10:08:15 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,4 +19,13 @@
 ** respectively.
 */
 
+#ifndef _GET_NEXT_LINE_H_
+# define _GET_NEXT_LINE_H_
+
+#ifndef BUFF_SIZE
+#define BUFF_SIZE 1
+#endif
+
 int get_next_line(const int fd, char **line);
+
+#endif
