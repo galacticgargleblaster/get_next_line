@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/02/26 10:08:15 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/02/27 14:41:18 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,10 @@
 #ifndef BUFF_SIZE
 #define BUFF_SIZE 1
 #endif
+
+#define GET_NEXT_LINE_READ_SUCCESS 1
+#define GET_NEXT_LINE_READ_COMPLETE 0
+#define GET_NEXT_LINE_READ_ERROR -1
 
 int get_next_line(const int fd, char **line);
 
