@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/02/27 14:41:18 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/02/27 20:58:55 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,24 @@
 ** respectively.
 */
 
+/*
+** How big of a buffer should I allocate initially?  Probs doesn't matter.
+** Make it work with bufsize 1 and bignum of mallocs
+**
+** Static is a function-scoped global.  this sucks.
+** point to a struct that stores state, what file is being read from, etc.
+**
+** data structure may be a dictionary of {fildes: context}
+** or maybe just a LinkedList of contexts, each with a fildes.
+**
+** static variables are initialized to zero
+** https://port70.net/~nsz/c/c11/n1570.html#6.7.9p10
+*/
+
 #ifndef _GET_NEXT_LINE_H_
 # define _GET_NEXT_LINE_H_
+
+#include <unistd.h>
 
 #ifndef BUFF_SIZE
 #define BUFF_SIZE 1
@@ -29,6 +45,13 @@
 #define GET_NEXT_LINE_READ_SUCCESS 1
 #define GET_NEXT_LINE_READ_COMPLETE 0
 #define GET_NEXT_LINE_READ_ERROR -1
+
+typedef struct	gnl_context_s
+{
+	int			fildes;
+	char		*buf;
+	size_t		buf_size;
+}				gnl_context_t;
 
 int get_next_line(const int fd, char **line);
 
