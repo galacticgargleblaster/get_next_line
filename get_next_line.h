@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/02/27 20:58:55 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/02/28 09:57:24 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,10 @@
 typedef struct	gnl_context_s
 {
 	int			fildes;
-	char		*buf;
-	size_t		buf_size;
+	char		*line;
+	char		buf[BUFF_SIZE];
+	size_t		line_size;
+	ssize_t		read_return_value;
 }				gnl_context_t;
 
 int get_next_line(const int fd, char **line);
