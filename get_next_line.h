@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/02/28 09:57:24 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/01 10:13:56 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 **
 ** static variables are initialized to zero
 ** https://port70.net/~nsz/c/c11/n1570.html#6.7.9p10
+**
 */
 
 #ifndef _GET_NEXT_LINE_H_
@@ -46,9 +47,14 @@
 #define GET_NEXT_LINE_READ_COMPLETE 0
 #define GET_NEXT_LINE_READ_ERROR -1
 
+/*
+**	A context is used to hold read state on every file descriptor
+**	that get_next_line is called on.
+*/
+
 typedef struct	gnl_context_s
 {
-	int			fildes;
+	int			fd;
 	char		*line;
 	char		buf[BUFF_SIZE];
 	size_t		line_size;

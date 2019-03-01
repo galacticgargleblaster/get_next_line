@@ -11,9 +11,22 @@
 void	test_reading_from_file()
 {
 	char	*line;
-	FILE *f = fopen("example.txt", "r");	
-	get_next_line(fileno(f), &line);
-	assert(0 == 1);
+	FILE *f = fopen("example.txt", "w");
+	write(fileno(f), "foo\n", 4);
+	fclose(f);
+
+	f = fopen("example.txt", "r");
+
+	// Should stop at '\n'
+	int r = get_next_line(fileno(f), &line);
+	assert(r == 1);
+	assert(strcmp(line, "foo") == 0);
+
+	// Should return that reading has been completed.
+	// str should be null
+	r = get_next_line(fileno(f), &line);
+	assert(r == 0);
+	assert(line == NULL);
 }
 
 int main()
