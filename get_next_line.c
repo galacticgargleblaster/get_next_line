@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/01 11:40:13 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/01 15:54:34 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,11 @@ static gnl_context_t	*__gnl_context_new__(const int fd)
 	return (context);
 }
 
+/*
+**	checks for '\n', reallocates and concatenates buffer contents
+**	onto existing line.
+*/
+
 static int				debuffer_line(gnl_context_t *c)
 {
 	char				*tmp;
@@ -52,9 +57,10 @@ static int				debuffer_line(gnl_context_t *c)
 			return (GET_NEXT_LINE_READ_ERROR);
 		free(c->line);
 	}
-	if (ft_strncat(tmp, c->buf, c->line_size) == NULL)
+	if (ft_strncat(tmp, c->buf, c->line_size - ft_strlen(tmp)) == NULL)
 		return (GET_NEXT_LINE_READ_ERROR);
 	c->line = tmp;
+	return (0);
 }
 
 #define CONTAINS_NEWLINE(STR) (ft_strchr(STR, '\n') != NULL)
@@ -62,6 +68,8 @@ static int				debuffer_line(gnl_context_t *c)
 
 static int				get_next_line_in_context(gnl_context_t *c, char **line)
 {
+	int	err;
+	
 	while ((c->read_return_value = read(c->fd, c->buf, BUFF_SIZE)) != 0)
 	{
 		if (c->read_return_value < 0)
@@ -69,9 +77,13 @@ static int				get_next_line_in_context(gnl_context_t *c, char **line)
 		c->line_size += (CONTAINS_NEWLINE(c->buf) ? 
 						(size_t)(ft_strchr(c->buf, '\n') - c->buf) : 
 						c->read_return_value);
-		*line = c->line;
+		if (debuffer_line(c) == GET_NEXT_LINE_READ_ERROR)
+			return (GET_NEXT_LINE_READ_ERROR);
 		if (CONTAINS_NEWLINE(c->buf))
+		{
+			*line = c->line;
 			return (GET_NEXT_LINE_READ_SUCCESS);
+		}
 	}
 	return (GET_NEXT_LINE_READ_COMPLETE);
 }
@@ -100,7 +112,6 @@ int						get_next_line(const int fd, char **line)
 		return_value == GET_NEXT_LINE_READ_COMPLETE)
 	{
 		c = ft_lstremove(&contexts, c);
-		free(c->buf);
 		free(c);
 	}
 	return (return_value);
