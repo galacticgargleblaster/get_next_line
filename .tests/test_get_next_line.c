@@ -84,10 +84,28 @@ void	test_reading_from_many_files()
 	}
 }
 
+void	test_gnl_1_2()
+{
+	FILE *f = fopen("gnl1_2.txt", "r");
+	char *line;
+	int r = get_next_line(fileno(f), &line);
+	assert(r == 1);
+	assert(strcmp(line, "1234567") == 0);
+
+	r = get_next_line(fileno(f), &line);
+	assert(r == 1);
+	assert(strcmp(line, "abcdefg") == 0);
+	
+	r = get_next_line(fileno(f), &line);
+	assert(r == 0);
+	assert(line == NULL);
+}
+
 int main()
 {
 	test_reading_from_file();
 	test_reading_from_many_files();
+	test_gnl_1_2();
 }
 
 

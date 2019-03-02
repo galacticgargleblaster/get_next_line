@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/01 15:59:48 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/01 20:31:27 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,6 @@ static int				debuffer_line(gnl_context_t *c)
 }
 
 #define CONTAINS_NEWLINE(STR) (ft_strchr(STR, '\n') != NULL)
-#define NOT(X) (!(X))
 
 static int				get_next_line_in_context(gnl_context_t *c, char **line)
 {
@@ -87,8 +86,8 @@ static int				get_next_line_in_context(gnl_context_t *c, char **line)
 }
 
 /*
-**	Returns when '\n' is encountered, when read() returns 0, or
-**  when an error occurs.
+**	Returns with 1 when '\n' is encountered, with 0 when read() returns 0, or
+**  with -1 when an error occurs.
 */
 
 int						get_next_line(const int fd, char **line)

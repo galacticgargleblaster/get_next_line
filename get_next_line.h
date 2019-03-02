@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/01 14:56:37 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/01 20:45:18 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,15 @@
 # define _GET_NEXT_LINE_H_
 
 #include <unistd.h>
+
+/*
+** Overriding preprocessor defines seems to be nontrivial per:
+** https://stackoverflow.com/questions/18483166/override-macro-from-the-command-line
+**
+** So I wrap the definition in #ifndef/#endif.
+** Which begs the question, how does Moulinette change this value?
+** Surely not with sed I hope. 
+*/
 
 #ifndef BUFF_SIZE
 #define BUFF_SIZE 1
