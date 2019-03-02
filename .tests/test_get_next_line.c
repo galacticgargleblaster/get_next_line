@@ -8,14 +8,21 @@
 #define N_FILES 40
 #define FILE_SIZE_CHAR 400
 
+FILE *make_file(char *name, char *contents)
+{
+	FILE *f = fopen(name, "w");
+	write(fileno(f), contents, ft_strlen(contents));
+	fclose(f);
+	f = fopen(name, "r");
+	return (f);
+}
+
 void	test_reading_from_file()
 {
 	char	*line;
-	FILE *f = fopen("example.txt", "w");
-	write(fileno(f), "foo\n", 4);
-	fclose(f);
 
-	f = fopen("example.txt", "r");
+	char *name = "example.txt";
+	FILE *f = make_file(name, "foo\n");
 
 	// Should stop at '\n'
 	int r = get_next_line(fileno(f), &line);
@@ -27,11 +34,60 @@ void	test_reading_from_file()
 	r = get_next_line(fileno(f), &line);
 	assert(r == 0);
 	assert(line == NULL);
+
+	remove(name);
+}
+
+
+void	test_reading_from_file_without_newline()
+{
+	char	*line;
+
+	char *name = "example.txt";
+	FILE *f = make_file(name, "foo\n");
+
+	// Should stop at EOF
+	int r = get_next_line(fileno(f), &line);
+	assert(r == 0); // and reading has completed
+	assert(strcmp(line, "foo") == 0);
+
+	// Should return again that reading has been completed.
+	// str should be null
+	r = get_next_line(fileno(f), &line);
+	assert(r == 0);
+	assert(line == NULL);
+
+	remove(name);
+}
+
+
+void	test_reading_from_many_files()
+{
+	FILE *files[N_FILES];
+	char *lines[N_FILES];
+	char *names[N_FILES];
+
+	for (size_t i = 0; i < N_FILES; i++)
+	{
+		names[i] = ft_strcat(ft_itoa((int)i), ".txt");
+		files[i] = make_file(names[i], ft_strcat(ft_strdup(names[i]), "\n"));
+	}	
+	for (size_t i = 0; i < N_FILES; i++)
+	{
+		int r = get_next_line(fileno(files[i]), &(lines[i]));
+		assert(r == 1);
+		assert(strcmp(lines[i], names[i]) == 0);	
+	}
+	for (size_t i = 0; i < N_FILES; i++)
+	{
+		remove(names[i]);
+	}
 }
 
 int main()
 {
 	test_reading_from_file();
+	test_reading_from_many_files();
 }
 
 
