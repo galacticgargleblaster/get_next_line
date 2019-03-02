@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/01 15:54:34 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/01 15:59:48 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,8 +68,6 @@ static int				debuffer_line(gnl_context_t *c)
 
 static int				get_next_line_in_context(gnl_context_t *c, char **line)
 {
-	int	err;
-	
 	while ((c->read_return_value = read(c->fd, c->buf, BUFF_SIZE)) != 0)
 	{
 		if (c->read_return_value < 0)
@@ -99,6 +97,7 @@ int						get_next_line(const int fd, char **line)
 	gnl_context_t	*c;
 	int				return_value;
 
+	*line = NULL;
 	c = get_existing_context_for_fd(fd, contexts);
 	if (c == NULL)
 	{
