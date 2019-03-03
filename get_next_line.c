@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 00:46:10 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 15:15:46 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,75 +37,113 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 	context->fd = fd;
 	context->line_size = 0;
 	context->read_return_value = BUFF_SIZE;
-	context->line_start = context->buf;
+	context->line_start = NULL;
 	context->debuffer_state = DEBUFFER_STATE_HUNGRY;
 	return (context);
 }
 
-#define EFFECTIVE_BUFF_SIZE(c) (MIN(BUFF_SIZE, c->read_return_value))
-#define BYTES_REMAINING(c) (EFFECTIVE_BUFF_SIZE(c) - (c->line_start - c->buf))
-#define IN_RANGE(c, nl) (nl - c->buf < BUFF_SIZE)
-#define EXACT_EOF(c) (c->line_size == (size_t)c->read_return_value && c->line_size < BUFF_SIZE)
-
 /*
-**	Returns DEBUFFER_STATE_HUNGRY if there's more buffer to be eaten
-**  Returns DEBUFFER_STATE_SATISFIED if '\n' or EOB is reached
+**	Copies bytes from the context's buffer into the context's line
+**
+**	Returns DEBUFFER_STATE_HUNGRY if there's more buffer to be eaten.
+**  Returns DEBUFFER_STATE_END_OF_LINE if '\n' is reached
+**	Returns DEBUFFER_STATE_NULL if line_start points to null
 **  Returns DEBUFFER_STATE_ERROR if there's an issue
+**
+**  CASE 1: BUFF_SIZE [7] > len(line) [3]
+**
+** | f | o | o | \n| b | a | r |
+**   ^
+**   line_start, first call.  Returns DEBUFFER_STATE_END_OF_LINE
+**
+** | f | o | o | \n| b | a | r |
+**                   ^
+**                   line_start, second call, Returns DEBUFFER_STATE_HUNGRY (reached EOB)
+**
+** NULL
+**  ^
+**  line_start, third call, Returns DEBUFFER_STATE_NULL
+**
+**  CASE 2: BUFF_SIZE [1] < len(line) [3]
+**
+** | f |
+**   ^
+**   line_start, first call.  Returns DEBUFFER_STATE_HUNGRY
+**
+** | \n|
+**   ^
+**   line_start, fourth call, Returns DEBUFFER_STATE_END_OF_LINE
+**
+** NULL
+**  ^
+**  line_start, eighth call, Returns DEBUFFER_STATE_NULL
+**
 */
 
-static int				debuffer_line(t_gnl_context *c)
+#define REMAINING_BUFF_SIZE(c) (size_t)(BUFF_SIZE - (c->line_start - c->buf))
+#define NEXT_NL(c) (ft_memchr(c->line_start, '\n', (REMAINING_BUFF_SIZE(c))))
+#define BYTES_TO_NEXT_NL(c) ((char*)NEXT_NL(c) - c->line_start)
+
+static int				debuffer(t_gnl_context *c)
 {
 	char				*tmp;
-	size_t				next_segment_length;
+	char				*cpy;
 	char				*next_nl;
+	size_t				size;
 
-	if ((next_nl = ft_memchr(c->line_start, '\n', BYTES_REMAINING(c))) == NULL)
-		next_segment_length = BYTES_REMAINING(c);
-	else
-		next_segment_length = next_nl - c->line_start;
-	c->line_size += next_segment_length;
-	if ((tmp = ft_strnew(c->line_size)) == NULL)
+	next_nl = NEXT_NL(c);
+	size = (next_nl == NULL ? REMAINING_BUFF_SIZE(c) : BYTES_TO_NEXT_NL(c));
+	if ((cpy = ft_strndup(c->line_start, size)) == NULL)
 		return (DEBUFFER_STATE_ERROR);
 	if (c->line)
 	{
-		if (ft_strcpy(tmp, c->line) == NULL)
+		if ((tmp = ft_strjoin(c->line, cpy)) == NULL)
 			return (DEBUFFER_STATE_ERROR);
+		free(cpy);
 		free(c->line);
+		c->line = tmp;
 	}
-	if (ft_strncat(tmp, c->line_start, next_segment_length) == NULL)
-		return (DEBUFFER_STATE_ERROR);
-	c->line = tmp;
-	c->line_start = (next_nl && IN_RANGE(c, next_nl) ? next_nl + 1 : c->buf);
+	else
+		c->line = cpy;
+	c->line_start = (REMAINING_BUFF_SIZE(c) > size ? next_nl : NULL);
 	if (next_nl)
-		return (DEBUFFER_STATE_SATISFIED);
-	if (EXACT_EOF(c))
-		return (DEBUFFER_STATE_EOF);
+		return (DEBUFFER_STATE_END_OF_LINE);
+	if (c->line_start == NULL)
+		return (DEBUFFER_STATE_NULL);
 	return (DEBUFFER_STATE_HUNGRY);
 }
 
+/*
+**
+*/
+
+#define IN_RANGE(ptr, c) ((ptr) < (c->buf + BUFF_SIZE))
+
 static int				get_next_line_in_context(t_gnl_context *c)
 {
-	c->line_size = 0;
+	if (c->debuffer_state == DEBUFFER_STATE_END_OF_LINE)
+	{
+		c->line_start = (IN_RANGE(c->line_start + 1, c) ?
+						c->line_start + 1 : NULL);
+		if (c->line_start == NULL)
+		c->debuffer_state = DEBUFFER_STATE_NULL;
+	}
 	while (1)
 	{
 		if (c->debuffer_state == DEBUFFER_STATE_HUNGRY ||
-			c->debuffer_state == DEBUFFER_STATE_EOF)
+			c->debuffer_state == DEBUFFER_STATE_NULL)
 		{
 			c->read_return_value = read(c->fd, c->buf, BUFF_SIZE);
+			c->line_start = c->buf;
 			if (c->read_return_value < 0)
 				return (GET_NEXT_LINE_READ_ERROR);
-			if (c->read_return_value == 0)
-			{
-				free(c->line);
-				c->line = NULL;
+			else if (c->read_return_value == 0)
 				return (GET_NEXT_LINE_READ_COMPLETE);
-			}
 		}
-		if ((c->debuffer_state = debuffer_line(c)) == DEBUFFER_STATE_ERROR)
+		if ((c->debuffer_state = debuffer(c)) == DEBUFFER_STATE_ERROR)
 			return (GET_NEXT_LINE_READ_ERROR);
-		if (c->debuffer_state == DEBUFFER_STATE_HUNGRY)
-			continue;
-		return (GET_NEXT_LINE_READ_SUCCESS);
+		if (c->debuffer_state == DEBUFFER_STATE_END_OF_LINE)
+			return (GET_NEXT_LINE_READ_SUCCESS);
 	}
 }
 

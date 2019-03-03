@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 00:45:56 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 12:51:02 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,8 @@ typedef enum			e_debuffer_state
 {
 	DEBUFFER_STATE_ERROR = -1,
 	DEBUFFER_STATE_HUNGRY,
-	DEBUFFER_STATE_SATISFIED,
-	DEBUFFER_STATE_EOF
+	DEBUFFER_STATE_END_OF_LINE,
+	DEBUFFER_STATE_NULL
 }						t_debuffer_state;
 
 /*
@@ -49,7 +49,8 @@ typedef enum			e_debuffer_state
 **	line - the line to be returned
 **	buf - the buffer
 **	line_start - points to the next non-null character in the buffer
-**               that follows a newline
+**               that follows a newline.  If no such character exists, then it
+**				 points to NULL.
 **	read_return_value - the value returned by the systemcall read()
 */
 
