@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/02 16:10:24 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/02 22:26:43 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ static gnl_context_t	*__gnl_context_new__(const int fd)
 	context->line_size = 0;
 	context->read_return_value = BUFF_SIZE;
 	context->line_start = context->buf;
-	context->debuffer_state = DEBUFFER_STATE_INIT;
+	context->debuffer_state = DEBUFFER_STATE_HUNGRY;
 	return (context);
 }
 
@@ -69,19 +69,16 @@ static int				debuffer_line(gnl_context_t *c)
 			return (DEBUFFER_STATE_ERROR);
 		free(c->line);
 	}
-	if (ft_strncat(tmp, c->buf, next_segment_length) == NULL)
+	if (ft_strncat(tmp, c->line_start, next_segment_length) == NULL)
 		return (DEBUFFER_STATE_ERROR);
 	c->line = tmp;
 	if (next_nl)
 	{
 		c->line_start = next_nl + 1;
-		return (DEBUFFER_STATE_END_OF_LINE);
+		return (DEBUFFER_STATE_SATISFIED);
 	}
-	else
-	{
-		c->line_start = c->buf;
-		return (DEBUFFER_STATE_END_OF_BUFFER);
-	}
+	c->line_start = c->buf;
+	return (DEBUFFER_STATE_HUNGRY);
 }
 
 
@@ -98,10 +95,9 @@ static int				debuffer_line(gnl_context_t *c)
 static int				get_next_line_in_context(gnl_context_t *c)
 {
 	c->line_size = 0;
-	while (c->debuffer_state != DEBUFFER_STATE_END_OF_LINE)
+	while (1)
 	{
-		if (c->debuffer_state == DEBUFFER_STATE_END_OF_BUFFER ||
-			c->debuffer_state == DEBUFFER_STATE_INIT)
+		if (c->debuffer_state == DEBUFFER_STATE_HUNGRY)
 		{
 			c->read_return_value = read(c->fd, c->buf, BUFF_SIZE);
 			if (c->read_return_value < 0)
@@ -118,8 +114,9 @@ static int				get_next_line_in_context(gnl_context_t *c)
 		}
 		if ((c->debuffer_state = debuffer_line(c)) == DEBUFFER_STATE_ERROR)
 			return (GET_NEXT_LINE_READ_ERROR);
+		if (c->debuffer_state == DEBUFFER_STATE_SATISFIED)
+			return (GET_NEXT_LINE_READ_SUCCESS);
 	}
-	return (GET_NEXT_LINE_READ_SUCCESS);
 }
 
 /*
@@ -147,6 +144,7 @@ int						get_next_line(const int fd, char **line)
 	}	
 	return_value = get_next_line_in_context(c);
 	*line = c->line;
+	c->line = NULL;
 	if (return_value == GET_NEXT_LINE_READ_ERROR ||
 		return_value == GET_NEXT_LINE_READ_COMPLETE)
 	{

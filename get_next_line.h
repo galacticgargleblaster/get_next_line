@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/02 16:06:35 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/02 22:20:16 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,10 +62,9 @@
 #define GET_NEXT_LINE_READ_ERROR -1
 
 typedef enum	debuffer_state {
-	DEBUFFER_STATE_INIT = 0,
-	DEBUFFER_STATE_END_OF_LINE,
-	DEBUFFER_STATE_END_OF_BUFFER,
-	DEBUFFER_STATE_ERROR
+	DEBUFFER_STATE_ERROR = -1,
+	DEBUFFER_STATE_HUNGRY,
+	DEBUFFER_STATE_SATISFIED
 }				DEBUFFER_STATE;
 
 /*
