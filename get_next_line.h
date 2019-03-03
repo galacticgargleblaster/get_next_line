@@ -6,32 +6,9 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/02 22:57:43 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 00:45:56 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-/*
-** The first parameter is the file descriptor that will be used to read.
-** The second parameter is the address of a pointer to a character that will
-** be used to save the line read from the file descriptor.
-** The return value can be 1, 0 or -1 depending on whether a line has been
-** read, when the reading has been completed, or if an error has happened
-** respectively.
-*/
-
-/*
-** How big of a buffer should I allocate initially?  Probs doesn't matter.
-** Make it work with bufsize 1 and bignum of mallocs
-**
-** Static is a function-scoped global.  this sucks.
-** point to a struct that stores state, what file is being read from, etc.
-**
-** data structure may be a dictionary of {fildes: context}
-** or maybe just a LinkedList of contexts, each with a fildes.
-**
-** static variables are initialized to zero
-** https://port70.net/~nsz/c/c11/n1570.html#6.7.9p10
-*/
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
@@ -60,7 +37,8 @@ typedef enum			e_debuffer_state
 {
 	DEBUFFER_STATE_ERROR = -1,
 	DEBUFFER_STATE_HUNGRY,
-	DEBUFFER_STATE_SATISFIED
+	DEBUFFER_STATE_SATISFIED,
+	DEBUFFER_STATE_EOF
 }						t_debuffer_state;
 
 /*
