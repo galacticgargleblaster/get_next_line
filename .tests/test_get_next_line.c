@@ -1,4 +1,5 @@
 #include "../get_next_line.h"
+#include "../get_next_line.c" // To test module-private functions
 #include "../libft/libft.h"
 #include <assert.h>
 #include <stdio.h>
@@ -16,6 +17,8 @@ FILE *make_file(char *name, char *contents)
 	f = fopen(name, "r");
 	return (f);
 }
+
+
 
 void	test_reading_from_file()
 {
@@ -103,8 +106,8 @@ void	test_gnl_1_2()
 
 int main()
 {
-	test_reading_from_file();
-	test_reading_from_many_files();
+	// test_reading_from_file();
+	// test_reading_from_many_files();
 	test_gnl_1_2();
 }
 

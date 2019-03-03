@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/01 20:45:18 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/02 16:06:35 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,11 @@
 ** static variables are initialized to zero
 ** https://port70.net/~nsz/c/c11/n1570.html#6.7.9p10
 **
+** I started learning C inside a large company, and it shows.  5 functions
+** isn't enough.  Everything should be smaller, maintainable, and explainable.
+**
+** I can remember browsing some STM32 motor control header files, and being
+** disappointed as to how sparse they were. 
 */
 
 #ifndef _GET_NEXT_LINE_H_
@@ -56,20 +61,35 @@
 #define GET_NEXT_LINE_READ_COMPLETE 0
 #define GET_NEXT_LINE_READ_ERROR -1
 
+typedef enum	debuffer_state {
+	DEBUFFER_STATE_INIT = 0,
+	DEBUFFER_STATE_END_OF_LINE,
+	DEBUFFER_STATE_END_OF_BUFFER,
+	DEBUFFER_STATE_ERROR
+}				DEBUFFER_STATE;
+
 /*
 **	A context is used to hold read state on every file descriptor
-**	that get_next_line is called on.
+**	that get_next_line is called with.
+**
+**	fd - file descriptor
+**	line - the line to be returned
+**	buf - the buffer
+**	line_start - points to the next non-null character in the buffer that follows a newline
+**	read_return_value - the value returned by the systemcall read()
 */
 
-typedef struct	gnl_context_s
+typedef struct		gnl_context_s
 {
-	int			fd;
-	char		*line;
-	char		buf[BUFF_SIZE];
-	size_t		line_size;
-	ssize_t		read_return_value;
-}				gnl_context_t;
+	int				fd;
+	char			*line;
+	size_t			line_size;
+	char			buf[BUFF_SIZE];
+	char 			*line_start;
+	ssize_t			read_return_value;
+	DEBUFFER_STATE	debuffer_state;
+}					gnl_context_t;
 
-int get_next_line(const int fd, char **line);
+int					get_next_line(const int fd, char **line);
 
 #endif
