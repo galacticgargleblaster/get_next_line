@@ -106,8 +106,8 @@ void	test_gnl_1_2()
 
 int main()
 {
-	// test_reading_from_file();
-	// test_reading_from_many_files();
+	test_reading_from_file();
+	test_reading_from_many_files();
 	test_gnl_1_2();
 }
 

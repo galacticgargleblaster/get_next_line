@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/02 22:26:43 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/02 23:00:51 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,22 @@
 #include "get_next_line.h"
 #include "libft/includes/libft.h"
 
-static gnl_context_t	*get_existing_context_for_fd(const int fd, t_list *elt)
+static t_gnl_context	*get_existing_context_for_fd(const int fd, t_list *elt)
 {
 	while (elt && elt->content)
 	{
-		if (((gnl_context_t*)(elt->content))->fd == fd)
+		if (((t_gnl_context*)(elt->content))->fd == fd)
 			return (elt->content);
 		elt = elt->next;
 	}
 	return (NULL);
 }
 
-static gnl_context_t	*__gnl_context_new__(const int fd)
+static t_gnl_context	*get_new_context_for_fd(const int fd)
 {
-	gnl_context_t	*context;
+	t_gnl_context	*context;
 
-	context = malloc(sizeof(gnl_context_t));
+	context = malloc(sizeof(t_gnl_context));
 	if (context == NULL)
 		return (NULL);
 	ft_bzero(context->buf, BUFF_SIZE);
@@ -50,7 +50,7 @@ static gnl_context_t	*__gnl_context_new__(const int fd)
 #define EFFECTIVE_BUFF_SIZE(c) (MIN(BUFF_SIZE, c->read_return_value))
 #define BYTES_REMAINING(c) (EFFECTIVE_BUFF_SIZE(c) - (c->line_start - c->buf))
 
-static int				debuffer_line(gnl_context_t *c)
+static int				debuffer_line(t_gnl_context *c)
 {
 	char				*tmp;
 	size_t				next_segment_length;
@@ -72,27 +72,13 @@ static int				debuffer_line(gnl_context_t *c)
 	if (ft_strncat(tmp, c->line_start, next_segment_length) == NULL)
 		return (DEBUFFER_STATE_ERROR);
 	c->line = tmp;
+	c->line_start = (next_nl ? next_nl + 1 : c->buf);
 	if (next_nl)
-	{
-		c->line_start = next_nl + 1;
 		return (DEBUFFER_STATE_SATISFIED);
-	}
-	c->line_start = c->buf;
 	return (DEBUFFER_STATE_HUNGRY);
 }
 
-
-/*
-**  The challenge of handling arbitrary buffer sizes:
-**  If the buffer is smaller than the line
-** 	--> then lines are split between multiple buffers
-**  If the buffer is larger than the line
-**  --> then there may be multiple lines in the buffer
-**
-**	
-*/
-
-static int				get_next_line_in_context(gnl_context_t *c)
+static int				get_next_line_in_context(t_gnl_context *c)
 {
 	c->line_size = 0;
 	while (1)
@@ -130,18 +116,18 @@ static int				get_next_line_in_context(gnl_context_t *c)
 int						get_next_line(const int fd, char **line)
 {
 	static t_list	*contexts;
-	gnl_context_t	*c;
+	t_gnl_context	*c;
 	int				return_value;
 
 	*line = NULL;
 	c = get_existing_context_for_fd(fd, contexts);
 	if (c == NULL)
 	{
-		c = __gnl_context_new__(fd);
+		c = get_new_context_for_fd(fd);
 		if (c == NULL)
 			return (GET_NEXT_LINE_READ_ERROR);
 		contexts = ft_lstpush(contexts, c);
-	}	
+	}
 	return_value = get_next_line_in_context(c);
 	*line = c->line;
 	c->line = NULL;
