@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 16:16:17 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 16:28:24 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ static int				debuffer(t_gnl_context *c)
 **
 */
 
-#define IN_RANGE(ptr, c) (((ptr) > (c->buf)) && ((ptr) < (c->buf + BUFF_SIZE)))
+#define IN_RANGE(ptr, c) (((ptr) > (c->buf)) && ((ptr) < (c->buf + MIN(BUFF_SIZE, c->read_return_value))))
 
 static int				get_next_line_in_context(t_gnl_context *c)
 {
