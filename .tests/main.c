@@ -4,34 +4,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define N_FILES 40
-#define FILE_SIZE_CHAR 400
-
-void	write_random_bytes_to_file(FILE *f)
+int main(int ac, char **av)
 {
-	size_t bytes_written = 0;
-	while (bytes_written < FILE_SIZE_CHAR)
-	{
-		int *rand_mem = malloc(sizeof(int));
-		*rand_mem = random();
-		write(fileno(f), (char*)rand_mem, sizeof(int));
-		bytes_written += sizeof(int);
-	}
-}
+	char *line = NULL;
 
-int main()
-{
-
-	FILE *fhandles[N_FILES];
-	for (int i = 0; i < N_FILES; i++)
+	printf("ac: %d\n", ac);
+	if (ac == 1)
 	{
-		char *fname =ft_strcat(ft_itoa(i), ".txt"); 
-		fhandles[i] = fopen(fname, "w");
-		write_random_bytes_to_file(fhandles[i]);
-		printf("file: %s\tfileno:%d\n",fname, fileno(fhandles[i]));
-		free(fname);
+		while (get_next_line(STDIN_FILENO, &line))
+			printf("%s\n", line);
 	}
+	else
+		av = 0;
+
 	return (0);
 }
 
-
+// echo "foo\nbar\nbaz" | ./a.out
