@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 16:38:16 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 17:06:03 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,9 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 	ft_bzero(context->buf, BUFF_SIZE);
 	context->line = NULL;
 	context->fd = fd;
-	context->read_return_value = BUFF_SIZE;
-	context->line_start = NULL;
-	context->debuffer_state = DEBUFFER_STATE_HUNGRY;
+	context->read_returned = BUFF_SIZE;
+	context->start_idx = NULL;
+	context->debuffer_state = HUNGRY;
 	return (context);
 }
 
@@ -53,40 +53,40 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 **
 ** | f | o | o | \n| b | a | r |
 **   ^
-**   line_start, first call.  Returns DEBUFFER_STATE_END_OF_LINE
+**   start_idx, first call.  Returns DEBUFFER_STATE_END_OF_LINE
 **
 ** | f | o | o | \n| b | a | r |
 **                   ^
-**                   line_start, second call, Returns DEBUFFER_STATE_UNCERTAIN
+**                   start_idx, second call, Returns DEBUFFER_STATE_UNCERTAIN
 **
 ** NULL
 **  ^
-**  line_start, third call, Returns DEBUFFER_STATE_NULL
+**  start_idx, third call, Returns DEBUFFER_STATE_NULL
 **
 **  CASE 2: BUFF_SIZE [1] < len(line) [3]
 **
 ** | f |
 **   ^
-**   line_start, first call.  Returns DEBUFFER_STATE_NULL
+**   start_idx, first call.  Returns DEBUFFER_STATE_NULL
 **
 ** | \n|
 **   ^
-**   line_start, fourth call, Returns DEBUFFER_STATE_END_OF_LINE
+**   start_idx, fourth call, Returns DEBUFFER_STATE_END_OF_LINE
 **
 ** NULL
 **  ^
-**  line_start, eighth call, Returns DEBUFFER_STATE_NULL
+**  start_idx, eighth call, Returns DEBUFFER_STATE_NULL
 **
 **  CASE 3: BUFF_SIZE [1] < len(line) [3], no newline
 **
 ** | f |
 **   ^
-**   line_start, first call.  Returns DEBUFFER_STATE_NULL
+**   start_idx, first call.  Returns DEBUFFER_STATE_NULL
 */
 
-#define REMAINING_BUFF_SIZE(c) (size_t)(BUFF_SIZE - (c->line_start - c->buf))
-#define NEXT_NL(c) (ft_memchr(c->line_start, '\n', (REMAINING_BUFF_SIZE(c))))
-#define BYTES_TO_NEXT_NL(c) ((char*)NEXT_NL(c) - c->line_start)
+#define REMAINING_BUFF_SIZE(c) (size_t)(BUFF_SIZE - (c->start_idx - c->buf))
+#define NEXT_NL(c) (ft_memchr(c->start_idx, '\n', (REMAINING_BUFF_SIZE(c))))
+#define BYTES_TO_NEXT_NL(c) ((char*)NEXT_NL(c) - c->start_idx)
 
 static int				debuffer(t_gnl_context *c)
 {
@@ -97,56 +97,54 @@ static int				debuffer(t_gnl_context *c)
 
 	next_nl = NEXT_NL(c);
 	size = (next_nl == NULL ? REMAINING_BUFF_SIZE(c) : BYTES_TO_NEXT_NL(c));
-	if ((cpy = ft_strndup(c->line_start, size)) == NULL)
-		return (DEBUFFER_STATE_ERROR);
+	if ((cpy = ft_strndup(c->start_idx, size)) == NULL)
+		return (ERROR);
 	if (c->line)
 	{
 		if ((tmp = ft_strjoin(c->line, cpy)) == NULL)
-			return (DEBUFFER_STATE_ERROR);
+			return (ERROR);
 		free(cpy);
 		free(c->line);
 		c->line = tmp;
 	}
 	else
 		c->line = cpy;
-	c->line_start = (REMAINING_BUFF_SIZE(c) > size ? next_nl : NULL);
+	c->start_idx = (REMAINING_BUFF_SIZE(c) > size ? next_nl : NULL);
 	if (next_nl)
-		return (DEBUFFER_STATE_END_OF_LINE);
-	if (c->line_start == NULL)
-		return (DEBUFFER_STATE_UNCERTAIN);
-	return (DEBUFFER_STATE_HUNGRY);
+		return (END_OF_LINE);
+	if (c->start_idx == NULL)
+		return (UNCERTAIN);
+	return (HUNGRY);
 }
 
-#define IN_RANGE(ptr, c) ((ptr >= c->buf) && (ptr < (c->buf + c->read_return_value)))
+#define LAST_CHAR(c) (c->buf + c->read_returned)
+#define IN_BUFF(ptr, c) ((ptr >= c->buf) && (ptr < LAST_CHAR(c)))
 
 static int				get_next_line_in_context(t_gnl_context *c)
 {
-	if (c->debuffer_state == DEBUFFER_STATE_END_OF_LINE)
+	if (c->debuffer_state == END_OF_LINE)
 	{
-		c->line_start = (IN_RANGE(c->line_start + 1, c) ?
-						c->line_start + 1 : NULL);
-		if (c->line_start == NULL)
-			c->debuffer_state = DEBUFFER_STATE_HUNGRY;
+		c->start_idx = (IN_BUFF(c->start_idx + 1, c) ? c->start_idx + 1 : NULL);
+		c->debuffer_state = (c->start_idx == NULL ? HUNGRY : c->debuffer_state);
 	}
 	while (1)
 	{
-		if (c->debuffer_state == DEBUFFER_STATE_HUNGRY ||
-			c->debuffer_state == DEBUFFER_STATE_UNCERTAIN)
+		if (c->debuffer_state == HUNGRY || c->debuffer_state == UNCERTAIN)
 		{
-			if ((c->read_return_value = read(c->fd, c->buf, BUFF_SIZE)) < 0)
+			if ((c->read_returned = read(c->fd, c->buf, BUFF_SIZE)) < 0)
 				return (GET_NEXT_LINE_READ_ERROR);
-			else if (c->read_return_value == 0 && c->debuffer_state == DEBUFFER_STATE_UNCERTAIN)
+			else if (c->read_returned == 0 && c->debuffer_state == UNCERTAIN)
 			{
-				c->debuffer_state = DEBUFFER_STATE_HUNGRY;
+				c->debuffer_state = HUNGRY;
 				return (GET_NEXT_LINE_READ_SUCCESS);
 			}
-			else if (c->read_return_value == 0)
+			else if (c->read_returned == 0)
 				return (GET_NEXT_LINE_READ_COMPLETE);
-			c->line_start = c->buf;
+			c->start_idx = c->buf;
 		}
-		if ((c->debuffer_state = debuffer(c)) == DEBUFFER_STATE_ERROR)
+		if ((c->debuffer_state = debuffer(c)) == ERROR)
 			return (GET_NEXT_LINE_READ_ERROR);
-		if (c->debuffer_state == DEBUFFER_STATE_END_OF_LINE)
+		if (c->debuffer_state == END_OF_LINE)
 			return (GET_NEXT_LINE_READ_SUCCESS);
 	}
 }

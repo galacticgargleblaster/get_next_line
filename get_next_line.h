@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 16:17:15 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 17:06:29 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,10 @@
 
 typedef enum			e_debuffer_state
 {
-	DEBUFFER_STATE_ERROR = -1,
-	DEBUFFER_STATE_HUNGRY,
-	DEBUFFER_STATE_END_OF_LINE,
-	DEBUFFER_STATE_UNCERTAIN
+	ERROR = -1,
+	HUNGRY,
+	END_OF_LINE,
+	UNCERTAIN
 }						t_debuffer_state;
 
 /*
@@ -48,10 +48,10 @@ typedef enum			e_debuffer_state
 **	fd - file descriptor
 **	line - the line to be returned
 **	buf - the buffer
-**	line_start - points to the next non-null character in the buffer
+**	start_idx - points to the next non-null character in the buffer
 **               that follows a newline.  If no such character exists, then it
 **				 points to NULL.
-**	read_return_value - the value returned by the systemcall read()
+**	read_returned - the value returned by the systemcall read()
 */
 
 typedef struct			s_gnl_context
@@ -59,8 +59,8 @@ typedef struct			s_gnl_context
 	int					fd;
 	char				*line;
 	char				buf[BUFF_SIZE];
-	char				*line_start;
-	ssize_t				read_return_value;
+	char				*start_idx;
+	ssize_t				read_returned;
 	t_debuffer_state	debuffer_state;
 }						t_gnl_context;
 

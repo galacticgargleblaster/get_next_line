@@ -111,12 +111,39 @@ void	test_gnl_7_1()
 	// assert(line == NULL);
 }
 
+void	test_only_newlines()
+{
+	#define SIZE 7
+	char	*line;
+
+	char *name = "newlines.txt";
+	char *str = ft_strnew(SIZE);
+	str = ft_memset(str, '\n', SIZE);
+	FILE *f = make_file(name, str);
+	int r;
+
+	for (size_t i = 0; i < SIZE; i++)
+	{
+		r = get_next_line(fileno(f), &line);
+		assert(r==1);
+		assert(strcmp(line, "") == 0);
+	}
+	// Should return that reading has been completed.
+	// str should be null
+	r = get_next_line(fileno(f), &line);
+	assert(r == 0);
+	// assert(line == NULL);
+
+	remove(name);
+}
+
 int main()
 {
 	test_reading_from_file();
 	test_reading_from_many_files();
 	test_gnl_1_2();
 	test_gnl_7_1();
+	test_only_newlines();
 }
 
 
