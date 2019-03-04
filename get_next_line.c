@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 15:15:46 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 16:11:47 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 	ft_bzero(context->buf, BUFF_SIZE);
 	context->line = NULL;
 	context->fd = fd;
-	context->line_size = 0;
 	context->read_return_value = BUFF_SIZE;
 	context->line_start = NULL;
 	context->debuffer_state = DEBUFFER_STATE_HUNGRY;
@@ -68,7 +67,7 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 **
 ** | f |
 **   ^
-**   line_start, first call.  Returns DEBUFFER_STATE_HUNGRY
+**   line_start, first call.  Returns DEBUFFER_STATE_NULL
 **
 ** | \n|
 **   ^
@@ -78,6 +77,11 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 **  ^
 **  line_start, eighth call, Returns DEBUFFER_STATE_NULL
 **
+**  CASE 3: BUFF_SIZE [1] < len(line) [3], no newline
+**
+** | f |
+**   ^
+**   line_start, first call.  Returns DEBUFFER_STATE_NULL
 */
 
 #define REMAINING_BUFF_SIZE(c) (size_t)(BUFF_SIZE - (c->line_start - c->buf))
@@ -109,7 +113,7 @@ static int				debuffer(t_gnl_context *c)
 	if (next_nl)
 		return (DEBUFFER_STATE_END_OF_LINE);
 	if (c->line_start == NULL)
-		return (DEBUFFER_STATE_NULL);
+		return (DEBUFFER_STATE_UNCERTAIN);
 	return (DEBUFFER_STATE_HUNGRY);
 }
 
@@ -117,7 +121,7 @@ static int				debuffer(t_gnl_context *c)
 **
 */
 
-#define IN_RANGE(ptr, c) ((ptr) < (c->buf + BUFF_SIZE))
+#define IN_RANGE(ptr, c) (((ptr) > (c->buf)) && ((ptr) < (c->buf + BUFF_SIZE)))
 
 static int				get_next_line_in_context(t_gnl_context *c)
 {
@@ -126,19 +130,23 @@ static int				get_next_line_in_context(t_gnl_context *c)
 		c->line_start = (IN_RANGE(c->line_start + 1, c) ?
 						c->line_start + 1 : NULL);
 		if (c->line_start == NULL)
-		c->debuffer_state = DEBUFFER_STATE_NULL;
+			c->debuffer_state = DEBUFFER_STATE_HUNGRY;
 	}
 	while (1)
 	{
 		if (c->debuffer_state == DEBUFFER_STATE_HUNGRY ||
-			c->debuffer_state == DEBUFFER_STATE_NULL)
+			c->debuffer_state == DEBUFFER_STATE_UNCERTAIN)
 		{
-			c->read_return_value = read(c->fd, c->buf, BUFF_SIZE);
-			c->line_start = c->buf;
-			if (c->read_return_value < 0)
+			if ((c->read_return_value = read(c->fd, c->buf, BUFF_SIZE)) < 0)
 				return (GET_NEXT_LINE_READ_ERROR);
+			else if (c->read_return_value == 0 && c->debuffer_state == DEBUFFER_STATE_UNCERTAIN)
+			{
+				c->debuffer_state = DEBUFFER_STATE_HUNGRY;
+				return (GET_NEXT_LINE_READ_SUCCESS);
+			}
 			else if (c->read_return_value == 0)
 				return (GET_NEXT_LINE_READ_COMPLETE);
+			c->line_start = c->buf;
 		}
 		if ((c->debuffer_state = debuffer(c)) == DEBUFFER_STATE_ERROR)
 			return (GET_NEXT_LINE_READ_ERROR);
@@ -161,6 +169,8 @@ int						get_next_line(const int fd, char **line)
 	t_gnl_context	*c;
 	int				return_value;
 
+	if (BUFF_SIZE < 1 || fd < 0)
+		return (GET_NEXT_LINE_READ_ERROR);
 	*line = NULL;
 	c = get_existing_context_for_fd(fd, contexts);
 	if (c == NULL)

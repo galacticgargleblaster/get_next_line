@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 12:51:02 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 16:00:54 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ typedef enum			e_debuffer_state
 	DEBUFFER_STATE_ERROR = -1,
 	DEBUFFER_STATE_HUNGRY,
 	DEBUFFER_STATE_END_OF_LINE,
-	DEBUFFER_STATE_NULL
+	DEBUFFER_STATE_UNCERTAIN
 }						t_debuffer_state;
 
 /*
@@ -58,7 +58,6 @@ typedef struct			s_gnl_context
 {
 	int					fd;
 	char				*line;
-	size_t				line_size;
 	char				buf[BUFF_SIZE];
 	char				*line_start;
 	ssize_t				read_return_value;
