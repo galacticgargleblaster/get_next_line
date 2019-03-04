@@ -1,10 +1,10 @@
-#include "../get_next_line.h"
-#include "../get_next_line.c" // To test module-private functions
-#include "../libft/libft.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "../get_next_line.h"
+#include "../get_next_line.c" // To test module-private functions
+#include "../libft/libft.h"
 
 #define N_FILES 40
 #define FILE_SIZE_CHAR 400
@@ -111,6 +111,23 @@ void	test_gnl_7_1()
 	// assert(line == NULL);
 }
 
+void	test_gnl_7_2()
+{
+	FILE *f = fopen("gnl7_2.txt", "r");
+	char *line;
+	int r = get_next_line(fileno(f), &line);
+	assert(r == GET_NEXT_LINE_READ_SUCCESS);
+	assert(strcmp(line, "1234567") == 0);
+
+	r = get_next_line(fileno(f), &line);
+	printf("line: %s\n", line);
+	assert(strcmp(line, "abcdefgh") == 0);	
+	assert(r == GET_NEXT_LINE_READ_SUCCESS);
+	r = get_next_line(fileno(f), &line);
+	assert(r == GET_NEXT_LINE_READ_COMPLETE);
+	// assert(line == NULL);
+}
+
 void	test_only_newlines()
 {
 	#define SIZE 7
@@ -143,6 +160,7 @@ int main()
 	test_reading_from_many_files();
 	test_gnl_1_2();
 	test_gnl_7_1();
+	test_gnl_7_2();
 	test_only_newlines();
 }
 

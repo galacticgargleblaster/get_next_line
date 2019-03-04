@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 17:06:03 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 20:44:42 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,6 +131,7 @@ static int				get_next_line_in_context(t_gnl_context *c)
 	{
 		if (c->debuffer_state == HUNGRY || c->debuffer_state == UNCERTAIN)
 		{
+			ft_bzero(c->buf, BUFF_SIZE);
 			if ((c->read_returned = read(c->fd, c->buf, BUFF_SIZE)) < 0)
 				return (GET_NEXT_LINE_READ_ERROR);
 			else if (c->read_returned == 0 && c->debuffer_state == UNCERTAIN)
