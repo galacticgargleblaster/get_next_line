@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 16:00:54 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 16:17:15 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 */
 
 # ifndef BUFF_SIZE
-#  define BUFF_SIZE 1
+#  define BUFF_SIZE 10
 # endif
 
 # define GET_NEXT_LINE_READ_SUCCESS 1

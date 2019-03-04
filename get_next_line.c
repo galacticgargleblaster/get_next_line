@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 16:11:47 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 16:16:17 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,7 +169,7 @@ int						get_next_line(const int fd, char **line)
 	t_gnl_context	*c;
 	int				return_value;
 
-	if (BUFF_SIZE < 1 || fd < 0)
+	if (BUFF_SIZE < 1 || fd < 0 || line == NULL)
 		return (GET_NEXT_LINE_READ_ERROR);
 	*line = NULL;
 	c = get_existing_context_for_fd(fd, contexts);
