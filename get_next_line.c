@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 16:28:24 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 16:38:16 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 **
 **	Returns DEBUFFER_STATE_HUNGRY if there's more buffer to be eaten.
 **  Returns DEBUFFER_STATE_END_OF_LINE if '\n' is reached
-**	Returns DEBUFFER_STATE_NULL if line_start points to null
+**	Returns DEBUFFER_STATE_UNCERTAIN if the line may continue in the next buffer
 **  Returns DEBUFFER_STATE_ERROR if there's an issue
 **
 **  CASE 1: BUFF_SIZE [7] > len(line) [3]
@@ -57,7 +57,7 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 **
 ** | f | o | o | \n| b | a | r |
 **                   ^
-**                   line_start, second call, Returns DEBUFFER_STATE_HUNGRY (reached EOB)
+**                   line_start, second call, Returns DEBUFFER_STATE_UNCERTAIN
 **
 ** NULL
 **  ^
@@ -117,11 +117,7 @@ static int				debuffer(t_gnl_context *c)
 	return (DEBUFFER_STATE_HUNGRY);
 }
 
-/*
-**
-*/
-
-#define IN_RANGE(ptr, c) (((ptr) > (c->buf)) && ((ptr) < (c->buf + MIN(BUFF_SIZE, c->read_return_value))))
+#define IN_RANGE(ptr, c) ((ptr >= c->buf) && (ptr < (c->buf + c->read_return_value)))
 
 static int				get_next_line_in_context(t_gnl_context *c)
 {
