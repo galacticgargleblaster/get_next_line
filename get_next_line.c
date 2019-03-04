@@ -6,7 +6,7 @@
 /*   By: nkirkby <nkirkby@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/21 11:31:08 by nkirkby           #+#    #+#             */
-/*   Updated: 2019/03/03 20:44:42 by nkirkby          ###   ########.fr       */
+/*   Updated: 2019/03/03 21:17:49 by nkirkby          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,8 @@ static t_gnl_context	*get_new_context_for_fd(const int fd)
 */
 
 #define REMAINING_BUFF_SIZE(c) (size_t)(BUFF_SIZE - (c->start_idx - c->buf))
-#define NEXT_NL(c) (ft_memchr(c->start_idx, '\n', (REMAINING_BUFF_SIZE(c))))
+#define HMM(c) (MIN(REMAINING_BUFF_SIZE(c), (size_t)c->read_returned))
+#define NEXT_NL(c) (ft_memchr(c->start_idx, '\n', (HMM(c))))
 #define BYTES_TO_NEXT_NL(c) ((char*)NEXT_NL(c) - c->start_idx)
 
 static int				debuffer(t_gnl_context *c)
@@ -96,7 +97,7 @@ static int				debuffer(t_gnl_context *c)
 	size_t				size;
 
 	next_nl = NEXT_NL(c);
-	size = (next_nl == NULL ? REMAINING_BUFF_SIZE(c) : BYTES_TO_NEXT_NL(c));
+	size = (next_nl == NULL ? HMM(c) : BYTES_TO_NEXT_NL(c));
 	if ((cpy = ft_strndup(c->start_idx, size)) == NULL)
 		return (ERROR);
 	if (c->line)
@@ -131,7 +132,6 @@ static int				get_next_line_in_context(t_gnl_context *c)
 	{
 		if (c->debuffer_state == HUNGRY || c->debuffer_state == UNCERTAIN)
 		{
-			ft_bzero(c->buf, BUFF_SIZE);
 			if ((c->read_returned = read(c->fd, c->buf, BUFF_SIZE)) < 0)
 				return (GET_NEXT_LINE_READ_ERROR);
 			else if (c->read_returned == 0 && c->debuffer_state == UNCERTAIN)

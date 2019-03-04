@@ -120,7 +120,7 @@ void	test_gnl_7_2()
 	assert(strcmp(line, "1234567") == 0);
 
 	r = get_next_line(fileno(f), &line);
-	printf("line: %s\n", line);
+	printf("%s\n", line);
 	assert(strcmp(line, "abcdefgh") == 0);	
 	assert(r == GET_NEXT_LINE_READ_SUCCESS);
 	r = get_next_line(fileno(f), &line);
@@ -165,3 +165,4 @@ int main()
 }
 
 
+// printf("size: %zu\tcpy: %s\tnext_nl is null: %d\tread_return_value: %zu\tstart idx minus buf: %zu\n", size, cpy, next_nl ==NULL, c->read_returned, c->start_idx - c->buf);
